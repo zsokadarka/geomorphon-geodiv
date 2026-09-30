@@ -19,6 +19,7 @@ flat_list = []
 res_list = []
 skip_list = []
 dtm_list = []
+gen_count = 0
 
 def parameter_input():
     search_list_text = search_input.split(",")
@@ -63,11 +64,12 @@ for d in dtm_list:
             for k in res_list:
                 r = k
                 for l in skip_list:
-                    s = l
+                    skip = l
                     search = look
                     flat = t
                     res = r
-                    skip = s
+                    if skip >= search: # skip must be smaller than the lookup distance
+                        continue
 
             # --- NAME SYNTAX ---------------------------------------------
                     if skip == 0:
@@ -109,9 +111,11 @@ for d in dtm_list:
                         )
                         gm.save(str(out_lf))
                         arcpy.AddMessage(name + " generated")
+                        gen_count += 1
 
 
 arcpy.AddMessage("Done")
+arcpy.AddMessage(f"{gen_count} files generated.")
 
 
 
