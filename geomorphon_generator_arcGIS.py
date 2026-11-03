@@ -3,6 +3,9 @@
 
 import arcpy
 from pathlib import Path
+import datetime
+import csv
+
 
 search_input = arcpy.GetParameterAsText(0)
 flat_input = arcpy.GetParameterAsText(1)
@@ -11,6 +14,7 @@ skip_input = arcpy.GetParameterAsText(3)
 dtm_input = arcpy.GetParameterAsText(4)
 out_dir = Path(arcpy.GetParameterAsText(5))
 name_prefix = arcpy.GetParameterAsText(6)
+save2csv = arcpy.GetParameter(7)
 
 
 
@@ -45,6 +49,7 @@ arcpy.AddMessage(f"Search list = {search_list}")
 arcpy.AddMessage(f"Flat list = {flat_list}")
 arcpy.AddMessage(f"Used resolutions list = {res_list}")
 arcpy.AddMessage(f"Used skip values list = {skip_list}")
+arcpy.AddMessage(f"Output folder path = {out_dir}")
 
 # DEM INPUTS ------------------------------
 dtm_list_text = dtm_input.split(",")
@@ -53,6 +58,18 @@ for dem in dtm_list_text:
     path_object = Path(cleaned_path)
     dtm_list.append(path_object)
 arcpy.AddMessage(f"DEM list = {dtm_list}")
+
+# ---SAVING TO CSV------------------
+if save2csv:
+    csv_file = Path(out_dir / "geomorf_generated.csv")
+
+    file_is_empty = not csv_file.exists() or csv_file.stat().st_size == 0  # check whether there is a file already
+
+    with open(csv_file, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=",")
+
+        if file_is_empty:  # header if new file is needed
+            writer.writerow(["area", "name", "L", "s", "t", "res", "DEM_path", "output_path", "date"])
 
 # -- GEOMORPHON GENERATOR LOOP ---------------------------
 for d in dtm_list:
@@ -112,6 +129,17 @@ for d in dtm_list:
                         gm.save(str(out_lf))
                         arcpy.AddMessage(name + " generated")
                         gen_count += 1
+
+            #---WRITING CSV------------------
+
+                    if save2csv:
+                        with open(csv_file, "a", newline="", encoding="utf-8") as f:
+                            writer = csv.writer(f, delimiter=",")
+                            writer.writerow(
+                                [name_prefix, name, search, skip, flat, res, str(dtm), str(out_lf), datetime.datetime.now()])
+
+
+
 
 
 arcpy.AddMessage("Done")
